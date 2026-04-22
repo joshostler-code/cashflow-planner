@@ -12,7 +12,6 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
     const firebaseConfig = {
       apiKey: "AIzaSyCW4As9FiWxmm5IzfGlKBr-jQ-EDt3nseA",
       authDomain: "strata-cashflow.firebaseapp.com",
@@ -22,21 +21,20 @@
       messagingSenderId: "1024867824392",
       appId: "1:1024867824392:web:f51c224b64840bc76232bd"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     let suppressSync = false;
 
     window.fbPush = function() {
       if (suppressSync) return;
-      set(ref(db, 'planner2'), {
+      set(ref(db, 'planner3'), {
         scenarios: window._scenarios,
         activeId:  window._activeId,
         ts: Date.now()
       });
     };
 
-    onValue(ref(db, 'planner2'), (snapshot) => {
+    onValue(ref(db, 'planner3'), (snapshot) => {
       const data = snapshot.val();
       if (!data || !data.scenarios) { window.fbPush(); return; }
       suppressSync = true;
@@ -57,12 +55,13 @@
       --bg:#F2F5FA; --surface:#FFFFFF; --surface-2:#EEF3FB; --border:#D0DCEE;
       --text-1:#0B1D35; --text-2:#3D5070; --text-3:#7E93AF;
       --green:#1A7A44; --green-bg:#E3F5EC; --amber:#C07000; --amber-bg:#FFF4DC;
-      --red:#B52020; --red-bg:#FCE8E8;
+      --red:#B52020; --red-bg:#FCE8E8; --purple:#6B21A8; --purple-bg:#F3E8FF;
       --r-sm:6px; --r-md:10px; --r-lg:16px; --r-xl:22px;
       --sh-sm:0 1px 4px rgba(11,29,53,.06);
     }
     body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-1); min-height:100vh; }
 
+    /* HEADER */
     header { background:var(--navy); position:sticky; top:0; z-index:200; height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; box-shadow:0 2px 12px rgba(11,29,53,.3); }
     .logo { display:flex; align-items:center; gap:10px; color:#fff; font-weight:700; font-size:15px; }
     .logo-mark { width:32px; height:32px; background:var(--cobalt); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
@@ -102,11 +101,12 @@
     .modal-confirm { background:var(--cobalt); color:#fff; }
 
     /* PAGE */
-    .page { max-width:1200px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    .page { max-width:1240px; margin:0 auto; padding:2rem 1.5rem 4rem; }
     .hero { padding:2rem 0 1.5rem; border-bottom:1px solid var(--border); margin-bottom:1.75rem; }
     .hero h1 { font-size:26px; font-weight:700; letter-spacing:-.02em; color:var(--navy); }
     .hero p { font-size:14px; color:var(--text-2); margin-top:4px; }
 
+    /* KPI STRIP */
     .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:1.75rem; }
     .kpi { background:var(--surface); border-radius:var(--r-lg); padding:18px 20px; box-shadow:var(--sh-sm); border:1px solid var(--border); position:relative; overflow:hidden; }
     .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--cobalt); border-radius:var(--r-lg) var(--r-lg) 0 0; }
@@ -117,9 +117,10 @@
     .kpi-badge { display:inline-block; margin-top:8px; padding:3px 8px; border-radius:99px; font-size:11px; font-weight:600; }
     .badge-green { background:var(--green-bg); color:var(--green); } .badge-amber { background:var(--amber-bg); color:var(--amber); } .badge-red { background:var(--red-bg); color:var(--red); }
 
+    /* MAIN GRID */
     .main-grid { display:grid; grid-template-columns:340px 1fr; gap:1.25rem; align-items:start; }
     .panel { background:var(--surface); border-radius:var(--r-xl); border:1px solid var(--border); box-shadow:var(--sh-sm); overflow:hidden; }
-    .panel-head { padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--text-1); display:flex; align-items:center; justify-content:space-between; }
+    .panel-head { padding:14px 20px; border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--text-1); display:flex; align-items:center; justify-content:space-between; }
     .panel-head span { color:var(--text-3); font-weight:400; font-size:12px; }
     .panel-body { padding:16px 20px; display:flex; flex-direction:column; gap:18px; }
     .ctrl-group { display:flex; flex-direction:column; gap:7px; }
@@ -132,7 +133,10 @@
     input[type=range]::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--cobalt); border:2px solid #fff; box-shadow:0 0 0 2px var(--cobalt); cursor:pointer; }
     .divider { height:1px; background:var(--border); margin:2px 0; }
     .sect-tag { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--cobalt); padding:2px 8px; background:var(--ice); border-radius:99px; display:inline-block; }
+    .sect-tag-purple { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--purple); padding:2px 8px; background:var(--purple-bg); border-radius:99px; display:inline-block; }
+    .sect-tag-green { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--green); padding:2px 8px; background:var(--green-bg); border-radius:99px; display:inline-block; }
 
+    /* CHARTS */
     .chart-panel { background:var(--surface); border-radius:var(--r-xl); border:1px solid var(--border); box-shadow:var(--sh-sm); overflow:hidden; }
     .chart-head { padding:18px 22px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
     .chart-head h2 { font-size:15px; font-weight:600; color:var(--text-1); }
@@ -144,6 +148,10 @@
     .chart-tab { padding:4px 12px; border-radius:99px; font-size:12px; font-weight:500; cursor:pointer; border:none; background:transparent; color:var(--text-3); font-family:'DM Sans',sans-serif; transition:all .15s; }
     .chart-tab.active { background:var(--navy); color:#fff; }
 
+    /* THREE-COL PANELS */
+    .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.25rem; margin-top:1.25rem; }
+
+    /* TABLE */
     .table-panel { background:var(--surface); border-radius:var(--r-xl); border:1px solid var(--border); box-shadow:var(--sh-sm); overflow:hidden; margin-top:1.25rem; }
     .table-scroll { overflow-x:auto; }
     table { width:100%; border-collapse:collapse; font-size:12.5px; }
@@ -157,23 +165,42 @@
     tbody td:first-child { text-align:left; font-family:'DM Sans',sans-serif; font-weight:500; color:var(--text-2); }
     .cell-pos { color:var(--green); } .cell-neg { color:var(--red); } .cell-warn { color:var(--amber); }
 
-    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-top:1.25rem; }
-    .editable-row { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    /* EDITABLE ROWS */
+    .row-header { display:grid; font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-3); padding:0 0 6px 0; border-bottom:1px solid var(--border); margin-bottom:4px; }
+    .row-header-wins  { grid-template-columns:1fr 90px 70px 24px; gap:8px; }
+    .row-header-costs { grid-template-columns:1fr 90px 70px 80px 24px; gap:8px; }
+    .row-header-capital { grid-template-columns:1fr 90px 70px 24px; gap:8px; }
+
+    .editable-row { align-items:center; padding:7px 0; border-bottom:1px solid var(--border); }
     .editable-row:last-child { border-bottom:none; }
+    .editable-row-wins    { display:grid; grid-template-columns:1fr 90px 70px 24px; gap:8px; }
+    .editable-row-costs   { display:grid; grid-template-columns:1fr 90px 70px 80px 24px; gap:8px; }
+    .editable-row-capital { display:grid; grid-template-columns:1fr 90px 70px 24px; gap:8px; }
+
     .edit-name { font-size:13px; color:var(--text-1); border:none; background:transparent; font-family:'DM Sans',sans-serif; width:100%; outline:none; padding:2px 4px; border-radius:4px; }
     .edit-name:focus { background:var(--surface-2); }
-    .edit-val { font-family:'DM Mono',monospace; font-size:12px; border:1px solid var(--border); background:var(--surface-2); border-radius:var(--r-sm); padding:3px 8px; width:72px; text-align:right; color:var(--navy); outline:none; }
-    .edit-val:focus { border-color:var(--cobalt); }
+
+    /* $ input wrapper */
+    .dollar-wrap { position:relative; display:flex; align-items:center; }
+    .dollar-wrap .dollar-sign { position:absolute; left:8px; font-size:12px; color:var(--text-3); font-family:'DM Mono',monospace; pointer-events:none; }
+    .dollar-wrap .edit-val-d { font-family:'DM Mono',monospace; font-size:12px; border:1px solid var(--border); background:var(--surface-2); border-radius:var(--r-sm); padding:3px 8px 3px 18px; width:100%; text-align:right; color:var(--navy); outline:none; }
+    .dollar-wrap .edit-val-d:focus { border-color:var(--cobalt); }
+
+    .edit-select { font-size:11px; border:1px solid var(--border); border-radius:4px; padding:3px 4px; background:var(--surface-2); color:var(--text-2); font-family:'DM Sans',sans-serif; width:100%; outline:none; }
+    .edit-select:focus { border-color:var(--cobalt); }
+
     .type-badge { font-size:10px; font-weight:600; padding:2px 7px; border-radius:99px; white-space:nowrap; }
     .type-red { background:var(--red-bg); color:var(--red); } .type-green { background:var(--green-bg); color:var(--green); }
     .type-amber { background:var(--amber-bg); color:var(--amber); } .type-blue { background:var(--ice); color:var(--cobalt); }
+
     .add-row-btn { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:var(--r-sm); border:1.5px dashed var(--border); background:transparent; color:var(--text-3); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; margin-top:10px; transition:all .15s; width:100%; justify-content:center; }
     .add-row-btn:hover { border-color:var(--cobalt); color:var(--cobalt); background:var(--ice); }
-    .del-btn { background:none; border:none; cursor:pointer; color:var(--text-3); font-size:14px; line-height:1; padding:2px 4px; border-radius:4px; transition:color .12s; }
+    .del-btn { background:none; border:none; cursor:pointer; color:var(--text-3); font-size:15px; line-height:1; padding:2px 3px; border-radius:4px; transition:color .12s; }
     .del-btn:hover { color:var(--red); }
+
     footer { text-align:center; padding:2rem; font-size:12px; color:var(--text-3); border-top:1px solid var(--border); margin-top:3rem; }
 
-    @media (max-width:860px) { .main-grid { grid-template-columns:1fr; } .kpi-strip { grid-template-columns:repeat(2,1fr); } .two-col { grid-template-columns:1fr; } }
+    @media (max-width:960px) { .main-grid { grid-template-columns:1fr; } .kpi-strip { grid-template-columns:repeat(2,1fr); } .three-col { grid-template-columns:1fr; } }
     @media (max-width:480px) { .kpi-strip { grid-template-columns:1fr; } header { padding:0 1rem; } .page { padding:1rem 1rem 3rem; } }
   </style>
 </head>
@@ -186,9 +213,7 @@
     <label>Scenario name</label>
     <input type="text" id="modal-name" placeholder="e.g. Board Case, Raise Delayed, Headcount Freeze…" />
     <label>Start from</label>
-    <select id="modal-copy">
-      <option value="__blank__">Blank defaults</option>
-    </select>
+    <select id="modal-copy"><option value="__blank__">Blank defaults</option></select>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal()">Cancel</button>
       <button class="modal-confirm" onclick="confirmNewScenario()">Create</button>
@@ -203,10 +228,7 @@
     <div class="tag-live">LIVE</div>
   </div>
   <div class="header-right">
-    <div class="sync-indicator" id="sync-ind">
-      <div class="sync-dot"></div>
-      <span>Live sync</span>
-    </div>
+    <div class="sync-indicator" id="sync-ind"><div class="sync-dot"></div><span>Live sync</span></div>
     <button class="btn-sm btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
     <button class="btn-sm btn-primary" onclick="window.print()">Print</button>
   </div>
@@ -218,11 +240,13 @@
     <p>18-month interactive runway and revenue projection · Changes sync live for all viewers</p>
   </div>
 
+  <!-- SCENARIO TABS -->
   <div class="scenario-bar" id="scenario-bar">
     <div class="scenario-label">Scenarios</div>
     <button class="add-sc-btn" onclick="openModal()">+ New scenario</button>
   </div>
 
+  <!-- KPI STRIP -->
   <div class="kpi-strip">
     <div class="kpi" id="kpi-runway"><div class="kpi-label">Runway</div><div class="kpi-value" id="kpi-runway-val">—</div><div class="kpi-sub">months of cash</div><div class="kpi-badge" id="kpi-runway-badge"></div></div>
     <div class="kpi" id="kpi-arr"><div class="kpi-label">Month 18 ARR</div><div class="kpi-value" id="kpi-arr-val">—</div><div class="kpi-sub">annualized run rate</div><div class="kpi-badge" style="background:var(--ice);color:var(--cobalt);">Projected</div></div>
@@ -230,6 +254,7 @@
     <div class="kpi" id="kpi-cash-end"><div class="kpi-label">Ending Cash</div><div class="kpi-value" id="kpi-cash-val">—</div><div class="kpi-sub">cash balance at month 18</div><div class="kpi-badge" id="kpi-cash-badge"></div></div>
   </div>
 
+  <!-- MAIN GRID: sliders left, charts right -->
   <div class="main-grid">
     <div style="display:flex;flex-direction:column;gap:1rem;">
       <div class="panel">
@@ -248,7 +273,6 @@
           <div class="ctrl-group"><div class="ctrl-row"><div class="ctrl-label">Avg Contract Size (ARR)</div><div class="ctrl-val" id="lbl-contract">$50K</div></div><input type="range" id="sl-contract" min="3" max="300" step="1" value="50" oninput="onSlider('contract')" /></div>
           <div class="divider"></div>
           <div class="ctrl-group"><div class="ctrl-row"><div class="ctrl-label">Expansion Revenue / Mo</div><div class="ctrl-val" id="lbl-expansion">$3K</div></div><input type="range" id="sl-expansion" min="0" max="50" step="1" value="3" oninput="onSlider('expansion')" /></div>
-          <div class="ctrl-group"><div class="ctrl-row"><div class="ctrl-label">New Funding Inflow</div><div class="ctrl-val" id="lbl-funding">$0K</div></div><input type="range" id="sl-funding" min="0" max="5000" step="50" value="0" oninput="onSlider('funding')" /><div style="font-size:11px;color:var(--text-3)">One-time cash event at Month 1</div></div>
         </div>
       </div>
     </div>
@@ -278,6 +302,48 @@
     </div>
   </div>
 
+  <!-- THREE-COL: Revenue Pipeline | Cost Actions | Investor Capital -->
+  <div class="three-col">
+
+    <!-- REVENUE PIPELINE -->
+    <div class="panel">
+      <div class="panel-head">Revenue Pipeline <span><div class="sect-tag-green">WINS</div></span></div>
+      <div style="padding:12px 20px 0;">
+        <div class="row-header row-header-wins">
+          <span>Deal name</span><span style="text-align:right;">ARR ($K)</span><span style="text-align:center;">Closes</span><span></span>
+        </div>
+      </div>
+      <div id="wins-body" style="padding:0 20px;"></div>
+      <div style="padding:0 20px 16px;"><button class="add-row-btn" onclick="addWin()">+ Add deal</button></div>
+    </div>
+
+    <!-- COST ACTIONS -->
+    <div class="panel">
+      <div class="panel-head">Cost Actions <span><div class="sect-tag">LEVERS</div></span></div>
+      <div style="padding:12px 20px 0;">
+        <div class="row-header row-header-costs">
+          <span>Description</span><span style="text-align:right;">$/Mo ($K)</span><span style="text-align:center;">Type</span><span style="text-align:center;">Starts</span><span></span>
+        </div>
+      </div>
+      <div id="costs-body" style="padding:0 20px;"></div>
+      <div style="padding:0 20px 16px;"><button class="add-row-btn" onclick="addCost()">+ Add item</button></div>
+    </div>
+
+    <!-- INVESTOR CAPITAL -->
+    <div class="panel">
+      <div class="panel-head">Investor Capital <span><div class="sect-tag-purple">INFLOWS</div></span></div>
+      <div style="padding:12px 20px 0;">
+        <div class="row-header row-header-capital">
+          <span>Round / source</span><span style="text-align:right;">Amount ($K)</span><span style="text-align:center;">Month</span><span></span>
+        </div>
+      </div>
+      <div id="capital-body" style="padding:0 20px;"></div>
+      <div style="padding:0 20px 16px;"><button class="add-row-btn" onclick="addCapital()">+ Add inflow</button></div>
+    </div>
+
+  </div>
+
+  <!-- MONTHLY TABLE -->
   <div class="table-panel">
     <div class="panel-head" style="padding:16px 20px;border-bottom:1px solid var(--border);">
       <span style="font-size:13px;font-weight:600;color:var(--text-1);">Monthly Projection Detail</span>
@@ -285,22 +351,13 @@
     </div>
     <div class="table-scroll">
       <table>
-        <thead><tr><th style="text-align:left;">Month</th><th>MRR ($K)</th><th>Revenue ($K)</th><th>Burn ($K)</th><th>Net Cash Flow</th><th>Cash Balance ($K)</th><th>Status</th></tr></thead>
+        <thead><tr>
+          <th style="text-align:left;">Month</th>
+          <th>MRR ($K)</th><th>Revenue ($K)</th><th>Burn ($K)</th>
+          <th>Capital In ($K)</th><th>Net Cash Flow</th><th>Cash Balance ($K)</th><th>Status</th>
+        </tr></thead>
         <tbody id="proj-table"></tbody>
       </table>
-    </div>
-  </div>
-
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-head">Revenue Pipeline <span><div class="sect-tag">WINS</div></span></div>
-      <div id="wins-body" style="padding:12px 20px;"></div>
-      <div style="padding:0 20px 16px;"><button class="add-row-btn" onclick="addWin()">+ Add deal</button></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head">Cost Actions <span><div class="sect-tag">LEVERS</div></span></div>
-      <div id="costs-body" style="padding:12px 20px;"></div>
-      <div style="padding:0 20px 16px;"><button class="add-row-btn" onclick="addCost()">+ Add item</button></div>
     </div>
   </div>
 </div>
@@ -308,34 +365,44 @@
 <footer>Strata Intel · Cash Flow Planner · Projections are estimates only and do not constitute financial advice.</footer>
 
 <script>
-const SLIDER_KEYS = ['cash','mrr','opex','newmrr','churn','contract','expansion','funding'];
+const SLIDER_KEYS = ['cash','mrr','opex','newmrr','churn','contract','expansion'];
 
 function defaultSliders(o={}) {
-  return { cash:1200, mrr:25, opex:120, newmrr:15, churn:2, contract:50, expansion:3, funding:0, ...o };
+  return { cash:1200, mrr:25, opex:120, newmrr:15, churn:2, contract:50, expansion:3, ...o };
 }
+
 function makeScenario(name, sliderOverrides={}, copyFrom=null) {
   const base = copyFrom ? JSON.parse(JSON.stringify(copyFrom)) : {
-    wins:[{name:'Ensign Health (Healthcare)',arr:60,month:2},{name:'RC Willey (Retail)',arr:45,month:3},{name:'Pennant Group',arr:35,month:4}],
-    costs:[{name:'Vendor consolidation',delta:8,type:'Reduction'},{name:'Hiring freeze (1 role)',delta:12,type:'Reduction'}]
+    wins:[
+      {name:'Ensign Health (Healthcare)', arr:60, month:2},
+      {name:'RC Willey (Retail)',          arr:45, month:3},
+      {name:'Pennant Group',               arr:35, month:4}
+    ],
+    costs:[
+      {name:'Vendor consolidation',   delta:8,  type:'Reduction', startMonth:1},
+      {name:'Hiring freeze (1 role)', delta:12, type:'Reduction', startMonth:1}
+    ],
+    capital:[]
   };
   return {
     id: 'sc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
     name,
     sliders: defaultSliders(sliderOverrides),
-    wins:  base.wins,
-    costs: base.costs
+    wins:    base.wins,
+    costs:   base.costs,
+    capital: base.capital || []
   };
 }
 
 window._scenarios = [
   makeScenario('Base Case'),
   makeScenario('Conservative', {cash:800,mrr:15,opex:130,newmrr:8,churn:3,contract:30,expansion:1}),
-  makeScenario('Growth',       {cash:1500,mrr:40,opex:150,newmrr:30,churn:1.5,contract:75,expansion:8,funding:500}),
+  makeScenario('Growth',       {cash:1500,mrr:40,opex:150,newmrr:30,churn:1.5,contract:75,expansion:8}),
 ];
-window._scenarios[1].wins=[];window._scenarios[1].costs=[];
-window._scenarios[2].wins=[];window._scenarios[2].costs=[];
+window._scenarios[1].wins=[]; window._scenarios[1].costs=[]; window._scenarios[1].capital=[];
+window._scenarios[2].wins=[]; window._scenarios[2].costs=[]; window._scenarios[2].capital=[];
 window._activeId = window._scenarios[0].id;
-window._wins=[]; window._costs=[];
+window._wins=[]; window._costs=[]; window._capital=[];
 
 function activeScenario() {
   return window._scenarios.find(s=>s.id===window._activeId)||window._scenarios[0];
@@ -349,16 +416,13 @@ window.renderScenarioTabs = function() {
   window._scenarios.forEach(sc => {
     const tab = document.createElement('div');
     tab.className = 'sc-tab'+(sc.id===window._activeId?' active':'');
-
     const inp = document.createElement('input');
     inp.type='text'; inp.className='sc-name-input'; inp.value=sc.name;
     inp.readOnly = sc.id!==window._activeId;
     inp.addEventListener('mousedown', e => { if(sc.id!==window._activeId){e.preventDefault();switchScenario(sc.id);} });
     inp.addEventListener('change', ()=>{ sc.name=inp.value; if(window.fbPush)window.fbPush(); });
-
     tab.addEventListener('click', ()=>switchScenario(sc.id));
     tab.appendChild(inp);
-
     if(window._scenarios.length>1){
       const del=document.createElement('button');
       del.className='del-sc'; del.textContent='×'; del.title='Delete';
@@ -381,16 +445,18 @@ function switchScenario(id) {
 function saveCurrentToActive() {
   const sc=activeScenario();
   SLIDER_KEYS.forEach(k=>{ sc.sliders[k]=+document.getElementById('sl-'+k).value; });
-  sc.wins  = JSON.parse(JSON.stringify(window._wins||[]));
-  sc.costs = JSON.parse(JSON.stringify(window._costs||[]));
+  sc.wins    = JSON.parse(JSON.stringify(window._wins||[]));
+  sc.costs   = JSON.parse(JSON.stringify(window._costs||[]));
+  sc.capital = JSON.parse(JSON.stringify(window._capital||[]));
 }
 
 window.loadActive = function() {
   const sc=activeScenario();
   SLIDER_KEYS.forEach(k=>{ document.getElementById('sl-'+k).value=sc.sliders[k]; syncSlider(k); });
-  window._wins  = JSON.parse(JSON.stringify(sc.wins||[]));
-  window._costs = JSON.parse(JSON.stringify(sc.costs||[]));
-  renderWins(); renderCosts(); updateAll();
+  window._wins    = JSON.parse(JSON.stringify(sc.wins||[]));
+  window._costs   = JSON.parse(JSON.stringify(sc.costs||[]));
+  window._capital = JSON.parse(JSON.stringify(sc.capital||[]));
+  renderWins(); renderCosts(); renderCapital(); updateAll();
 };
 
 function deleteScenario(id) {
@@ -417,14 +483,8 @@ function confirmNewScenario() {
   const copyId=document.getElementById('modal-copy').value;
   saveCurrentToActive();
   let newSc;
-  if(copyId==='__blank__'){
-    newSc=makeScenario(name); newSc.wins=[]; newSc.costs=[];
-  } else {
-    const src=window._scenarios.find(s=>s.id===copyId);
-    newSc=JSON.parse(JSON.stringify(src));
-    newSc.id='sc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-    newSc.name=name;
-  }
+  if(copyId==='__blank__'){ newSc=makeScenario(name); newSc.wins=[]; newSc.costs=[]; newSc.capital=[]; }
+  else { const src=window._scenarios.find(s=>s.id===copyId); newSc=JSON.parse(JSON.stringify(src)); newSc.id='sc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6); newSc.name=name; }
   window._scenarios.push(newSc);
   window._activeId=newSc.id;
   closeModal(); renderScenarioTabs(); window.loadActive();
@@ -447,54 +507,88 @@ function onSlider(key) {
   if(window.fbPush)window.fbPush();
 }
 
-// ── PROJECTION ──
+// ── HELPERS ──
 function fmt(n){ if(Math.abs(n)>=1000)return'$'+(n/1000).toFixed(1)+'M'; return'$'+n.toFixed(n%1===0?0:1)+'K'; }
 
-function project() {
-  const sc=activeScenario(); const v=sc.sliders;
-  const wins=window._wins||[]; const costs=window._costs||[];
-  const MONTHS=18;
-  const labels=[],cashArr=[],mrrArr=[],revenueArr=[],opexArr=[],flowArr=[];
-  const savings=costs.filter(c=>c.type==='Reduction').reduce((s,c)=>s+c.delta,0);
-  const extra=costs.filter(c=>c.type==='Increase').reduce((s,c)=>s+c.delta,0);
-  const netOpex=Math.max(10,v.opex-savings+extra);
-  let cash=v.cash,mrr=v.mrr;
-  for(let m=0;m<=MONTHS;m++){
-    const winMRR=wins.filter(w=>w.month===m).reduce((s,w)=>s+(w.arr/12),0);
-    if(m===0){labels.push('Now');cashArr.push(cash);mrrArr.push(mrr);revenueArr.push(mrr);opexArr.push(netOpex);flowArr.push(mrr-netOpex);}
-    else{
-      const funding=m===1?v.funding:0;
-      mrr=mrr*(1-v.churn/100)+v.newmrr+v.expansion+winMRR;
-      const flow=mrr-netOpex+funding; cash+=flow;
-      labels.push(`M${m}`);cashArr.push(+cash.toFixed(1));mrrArr.push(+mrr.toFixed(1));
-      revenueArr.push(+mrr.toFixed(1));opexArr.push(+netOpex.toFixed(1));flowArr.push(+flow.toFixed(1));
-    }
-  }
-  return{labels,cashArr,mrrArr,revenueArr,opexArr,flowArr};
+function monthOptions(selected) {
+  return Array.from({length:18},(_,m)=>`<option value="${m+1}" ${selected===m+1?'selected':''}>Mo. ${m+1}</option>`).join('');
 }
 
+function dollarInput(val, onchange) {
+  return `<div class="dollar-wrap"><span class="dollar-sign">$</span><input class="edit-val-d" type="number" min="0" value="${val}" onchange="${onchange}" /></div>`;
+}
+
+// ── PROJECTION ENGINE ──
+function project() {
+  const sc=activeScenario(); const v=sc.sliders;
+  const wins=window._wins||[]; const costs=window._costs||[]; const capital=window._capital||[];
+  const MONTHS=18;
+  const labels=[],cashArr=[],mrrArr=[],revenueArr=[],opexArr=[],flowArr=[],capArr=[];
+
+  let cash=v.cash, mrr=v.mrr;
+
+  for(let m=0;m<=MONTHS;m++){
+    const winMRR = wins.filter(w=>w.month===m).reduce((s,w)=>s+(w.arr/12),0);
+
+    // Cost savings: only count costs where startMonth <= m
+    const savings = costs.filter(c=>c.type==='Reduction'&&(c.startMonth||1)<=m).reduce((s,c)=>s+c.delta,0);
+    const extra   = costs.filter(c=>c.type==='Increase'  &&(c.startMonth||1)<=m).reduce((s,c)=>s+c.delta,0);
+    const netOpex = Math.max(10, v.opex - savings + extra);
+
+    // Capital inflows this month
+    const capIn = capital.filter(c=>c.month===m).reduce((s,c)=>s+c.amount,0);
+
+    if(m===0){
+      labels.push('Now'); cashArr.push(cash); mrrArr.push(mrr);
+      revenueArr.push(mrr); opexArr.push(netOpex); flowArr.push(mrr-netOpex+capIn); capArr.push(capIn);
+      cash += (mrr - netOpex + capIn);
+    } else {
+      mrr = mrr*(1-v.churn/100)+v.newmrr+v.expansion+winMRR;
+      const flow = mrr - netOpex + capIn;
+      cash += flow;
+      labels.push(`M${m}`);
+      cashArr.push(+cash.toFixed(1)); mrrArr.push(+mrr.toFixed(1));
+      revenueArr.push(+mrr.toFixed(1)); opexArr.push(+netOpex.toFixed(1));
+      flowArr.push(+flow.toFixed(1)); capArr.push(capIn);
+    }
+  }
+  return{labels,cashArr,mrrArr,revenueArr,opexArr,flowArr,capArr};
+}
+
+// ── KPIs ──
 function renderKPIs(d){
   const{cashArr,mrrArr,flowArr}=d;
   let runway=cashArr.length-1;
   for(let i=1;i<cashArr.length;i++)if(cashArr[i]<=0){runway=i-1;break;}
   let be='>18';
   for(let i=1;i<flowArr.length;i++)if(flowArr[i]>=0){be=`Mo. ${i}`;break;}
-  const endCash=cashArr[cashArr.length-1],endARR=mrrArr[mrrArr.length-1]*12;
+  const endCash=cashArr[cashArr.length-1], endARR=mrrArr[mrrArr.length-1]*12;
+
   document.getElementById('kpi-runway-val').textContent=runway>=18?'18+':runway;
   const rb=document.getElementById('kpi-runway-badge');
-  if(runway>=12){rb.className='kpi-badge badge-green';rb.textContent='✓ Healthy';}else if(runway>=6){rb.className='kpi-badge badge-amber';rb.textContent='⚠ Watch';}else{rb.className='kpi-badge badge-red';rb.textContent='✗ Critical';}
+  if(runway>=12){rb.className='kpi-badge badge-green';rb.textContent='✓ Healthy';}
+  else if(runway>=6){rb.className='kpi-badge badge-amber';rb.textContent='⚠ Watch';}
+  else{rb.className='kpi-badge badge-red';rb.textContent='✗ Critical';}
   document.getElementById('kpi-runway').className='kpi '+(runway>=12?'green':runway>=6?'amber':'red');
   document.getElementById('kpi-arr-val').textContent=fmt(endARR);
+
   document.getElementById('kpi-be-val').textContent=be;
-  const bb=document.getElementById('kpi-be-badge');const beN=typeof be==='string'&&be.startsWith('Mo.')?+be.split(' ')[1]:99;
-  if(beN<=9){bb.className='kpi-badge badge-green';bb.textContent='On track';}else if(beN<=15){bb.className='kpi-badge badge-amber';bb.textContent='Stretch';}else{bb.className='kpi-badge badge-red';bb.textContent='Needs work';}
+  const bb=document.getElementById('kpi-be-badge');
+  const beN=typeof be==='string'&&be.startsWith('Mo.')?+be.split(' ')[1]:99;
+  if(beN<=9){bb.className='kpi-badge badge-green';bb.textContent='On track';}
+  else if(beN<=15){bb.className='kpi-badge badge-amber';bb.textContent='Stretch';}
+  else{bb.className='kpi-badge badge-red';bb.textContent='Needs work';}
+
   document.getElementById('kpi-cash-val').textContent=fmt(endCash);
   const cb=document.getElementById('kpi-cash-badge');
-  if(endCash>500){cb.className='kpi-badge badge-green';cb.textContent='✓ Strong';}else if(endCash>0){cb.className='kpi-badge badge-amber';cb.textContent='⚠ Low';}else{cb.className='kpi-badge badge-red';cb.textContent='✗ Insolvent';}
+  if(endCash>500){cb.className='kpi-badge badge-green';cb.textContent='✓ Strong';}
+  else if(endCash>0){cb.className='kpi-badge badge-amber';cb.textContent='⚠ Low';}
+  else{cb.className='kpi-badge badge-red';cb.textContent='✗ Insolvent';}
   document.getElementById('kpi-cash-end').className='kpi '+(endCash>500?'green':endCash>0?'amber':'red');
 }
 
-let chartMode='combo',mainChart,flowChart;
+// ── CHARTS ──
+let chartMode='combo', mainChart, flowChart;
 function initCharts(){
   mainChart=new Chart(document.getElementById('mainChart').getContext('2d'),{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:10,cornerRadius:8,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)}},y2:{position:'right',display:true,grid:{drawOnChartArea:false},ticks:{color:'#1A7A44',font:{size:11},callback:v=>fmt(v)}}}}});
   flowChart=new Chart(document.getElementById('flowChart').getContext('2d'),{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:10,cornerRadius:8,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)}}}}});
@@ -513,63 +607,79 @@ function renderCharts(d){
 
 function switchTab(mode){chartMode=mode;['combo','cash','mrr'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===mode));updateAll();}
 
+// ── TABLE ──
 function renderTable(d){
-  const{labels,cashArr,mrrArr,revenueArr,opexArr,flowArr}=d;
+  const{labels,cashArr,mrrArr,revenueArr,opexArr,flowArr,capArr}=d;
   document.getElementById('proj-table').innerHTML=labels.slice(1).map((l,i)=>{
-    const idx=i+1,flow=flowArr[idx],cash=cashArr[idx];
+    const idx=i+1,flow=flowArr[idx],cash=cashArr[idx],cap=capArr[idx];
     const fc=flow>=0?'cell-pos':'cell-neg',cc=cash>500?'cell-pos':cash>0?'cell-warn':'cell-neg';
     const st=cash<=0?'<span class="kpi-badge badge-red">Insolvent</span>':flow>=0?'<span class="kpi-badge badge-green">Profitable</span>':'<span class="kpi-badge badge-amber">Burning</span>';
-    return`<tr><td>${l}</td><td>${fmt(mrrArr[idx])}</td><td>${fmt(revenueArr[idx])}</td><td class="cell-neg">${fmt(opexArr[idx])}</td><td class="${fc}">${flow>=0?'+':''}${fmt(flow)}</td><td class="${cc}">${fmt(cash)}</td><td>${st}</td></tr>`;
+    return`<tr><td>${l}</td><td>${fmt(mrrArr[idx])}</td><td>${fmt(revenueArr[idx])}</td><td class="cell-neg">${fmt(opexArr[idx])}</td><td style="color:${cap>0?'var(--purple)':'var(--text-3)'}">${cap>0?'+'+fmt(cap):'—'}</td><td class="${fc}">${flow>=0?'+':''}${fmt(flow)}</td><td class="${cc}">${fmt(cash)}</td><td>${st}</td></tr>`;
   }).join('');
 }
 
+// ── REVENUE PIPELINE (WINS) ──
 function renderWins(){
   document.getElementById('wins-body').innerHTML=(window._wins||[]).map((w,i)=>`
-    <div class="editable-row">
-      <input class="edit-name" value="${w.name}" onchange="window._wins[${i}].name=this.value;saveAndPush()" />
-      <input class="edit-val" value="${w.arr}" onchange="window._wins[${i}].arr=+this.value;updateAll();saveAndPush()" />
-      <select style="font-size:11px;border:1px solid var(--border);border-radius:4px;padding:2px 4px;background:var(--surface-2);color:var(--text-2);" onchange="window._wins[${i}].month=+this.value;updateAll();saveAndPush()">
-        ${Array.from({length:18},(_,m)=>`<option value="${m+1}" ${w.month===m+1?'selected':''}>Mo. ${m+1}</option>`).join('')}
-      </select>
-      <button class="del-btn" onclick="window._wins.splice(${i},1);renderWins();updateAll();saveAndPush()">✕</button>
+    <div class="editable-row editable-row-wins">
+      <input class="edit-name" value="${w.name}" placeholder="Deal name" onchange="window._wins[${i}].name=this.value;saveAndPush()" />
+      ${dollarInput(w.arr, `window._wins[${i}].arr=+this.value;updateAll();saveAndPush()`)}
+      <select class="edit-select" onchange="window._wins[${i}].month=+this.value;updateAll();saveAndPush()">${monthOptions(w.month)}</select>
+      <button class="del-btn" onclick="window._wins.splice(${i},1);renderWins();updateAll();saveAndPush()">×</button>
     </div>`).join('');
 }
+function addWin(){ window._wins.push({name:'New deal',arr:30,month:3}); renderWins(); updateAll(); saveAndPush(); }
 
+// ── COST ACTIONS ──
 function renderCosts(){
   const types=['Reduction','Headcount','Vendor','Discretionary','Increase'];
   const typeCls={Reduction:'type-green',Headcount:'type-red',Vendor:'type-blue',Discretionary:'type-amber',Increase:'type-red'};
   document.getElementById('costs-body').innerHTML=(window._costs||[]).map((c,i)=>`
-    <div class="editable-row">
-      <input class="edit-name" value="${c.name}" onchange="window._costs[${i}].name=this.value;saveAndPush()" />
-      <input class="edit-val" value="${c.delta}" onchange="window._costs[${i}].delta=+this.value;updateAll();saveAndPush()" />
-      <select class="type-badge ${typeCls[c.type]||'type-blue'}" style="border:none;cursor:pointer;font-family:'DM Sans',sans-serif;" onchange="window._costs[${i}].type=this.value;renderCosts();updateAll();saveAndPush()">
+    <div class="editable-row editable-row-costs">
+      <input class="edit-name" value="${c.name}" placeholder="Description" onchange="window._costs[${i}].name=this.value;saveAndPush()" />
+      ${dollarInput(c.delta, `window._costs[${i}].delta=+this.value;updateAll();saveAndPush()`)}
+      <select class="edit-select" onchange="window._costs[${i}].type=this.value;renderCosts();updateAll();saveAndPush()">
         ${types.map(t=>`<option value="${t}" ${c.type===t?'selected':''}>${t}</option>`).join('')}
       </select>
-      <button class="del-btn" onclick="window._costs.splice(${i},1);renderCosts();updateAll();saveAndPush()">✕</button>
+      <select class="edit-select" onchange="window._costs[${i}].startMonth=+this.value;updateAll();saveAndPush()">${monthOptions(c.startMonth||1)}</select>
+      <button class="del-btn" onclick="window._costs.splice(${i},1);renderCosts();updateAll();saveAndPush()">×</button>
     </div>`).join('');
 }
+function addCost(){ window._costs.push({name:'New item',delta:5,type:'Reduction',startMonth:1}); renderCosts(); updateAll(); saveAndPush(); }
 
-function addWin(){window._wins.push({name:'New deal',arr:30,month:3});renderWins();updateAll();saveAndPush();}
-function addCost(){window._costs.push({name:'New item',delta:5,type:'Reduction'});renderCosts();updateAll();saveAndPush();}
+// ── INVESTOR CAPITAL ──
+function renderCapital(){
+  document.getElementById('capital-body').innerHTML=(window._capital||[]).map((c,i)=>`
+    <div class="editable-row editable-row-capital">
+      <input class="edit-name" value="${c.name}" placeholder="Round / source" onchange="window._capital[${i}].name=this.value;saveAndPush()" />
+      ${dollarInput(c.amount, `window._capital[${i}].amount=+this.value;updateAll();saveAndPush()`)}
+      <select class="edit-select" onchange="window._capital[${i}].month=+this.value;updateAll();saveAndPush()">${monthOptions(c.month)}</select>
+      <button class="del-btn" onclick="window._capital.splice(${i},1);renderCapital();updateAll();saveAndPush()">×</button>
+    </div>`).join('');
+}
+function addCapital(){ window._capital.push({name:'Seed Round',amount:500,month:3}); renderCapital(); updateAll(); saveAndPush(); }
 
+// ── SAVE & PUSH ──
 function saveAndPush(){
   const sc=activeScenario();
-  sc.wins=JSON.parse(JSON.stringify(window._wins));
-  sc.costs=JSON.parse(JSON.stringify(window._costs));
+  sc.wins    = JSON.parse(JSON.stringify(window._wins));
+  sc.costs   = JSON.parse(JSON.stringify(window._costs));
+  sc.capital = JSON.parse(JSON.stringify(window._capital));
   if(window.fbPush)window.fbPush();
 }
 
-function updateAll(){const d=project();renderKPIs(d);renderCharts(d);renderTable(d);}
+function updateAll(){ const d=project(); renderKPIs(d); renderCharts(d); renderTable(d); }
 
+// ── EXPORT ──
 function exportCSV(){
   saveCurrentToActive();
-  const sc=activeScenario();const d=project();
-  const{labels,cashArr,mrrArr,opexArr,flowArr}=d;
-  const rows=[['Scenario',sc.name],['Month','MRR ($K)','Revenue ($K)','Burn ($K)','Net Flow ($K)','Cash Balance ($K)']];
-  labels.forEach((l,i)=>rows.push([l,mrrArr[i],mrrArr[i],opexArr[i],flowArr[i]||'',cashArr[i]]));
+  const sc=activeScenario(); const d=project();
+  const{labels,cashArr,mrrArr,opexArr,flowArr,capArr}=d;
+  const rows=[['Scenario',sc.name],['Month','MRR ($K)','Revenue ($K)','Burn ($K)','Capital In ($K)','Net Flow ($K)','Cash Balance ($K)']];
+  labels.forEach((l,i)=>rows.push([l,mrrArr[i],mrrArr[i],opexArr[i],capArr[i]||0,flowArr[i]||'',cashArr[i]]));
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
-  a.download=`strata-cashflow-${sc.name.toLowerCase().replace(/\s+/g,'-')}.csv`;a.click();
+  a.download=`strata-cashflow-${sc.name.toLowerCase().replace(/\s+/g,'-')}.csv`; a.click();
 }
 
 // ── INIT ──
