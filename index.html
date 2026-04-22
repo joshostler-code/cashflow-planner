@@ -86,6 +86,9 @@
     .del-sc:hover { opacity:1; }
     .add-sc-btn { padding:6px 14px; border-radius:99px; border:1.5px dashed var(--border); background:transparent; color:var(--text-3); font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition:all .15s; white-space:nowrap; }
     .add-sc-btn:hover { border-color:var(--cobalt); color:var(--cobalt); background:var(--ice); }
+    .horizon-btn { padding:5px 13px; border-radius:99px; border:1.5px solid var(--border); background:var(--surface); color:var(--text-2); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .horizon-btn:hover { border-color:var(--cobalt); color:var(--cobalt); }
+    .horizon-btn.active { background:var(--navy); border-color:var(--navy); color:#fff; }
 
     /* MODAL */
     .modal-overlay { position:fixed; inset:0; background:rgba(11,29,53,.45); z-index:500; display:flex; align-items:center; justify-content:center; }
@@ -240,16 +243,24 @@
     <p>18-month interactive runway and revenue projection · Changes sync live for all viewers</p>
   </div>
 
-  <!-- SCENARIO TABS -->
-  <div class="scenario-bar" id="scenario-bar">
-    <div class="scenario-label">Scenarios</div>
-    <button class="add-sc-btn" onclick="openModal()">+ New scenario</button>
+  <!-- SCENARIO TABS + HORIZON TOGGLE -->
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;">
+    <div class="scenario-bar" id="scenario-bar" style="margin-bottom:0;flex:1;min-width:0;">
+      <div class="scenario-label">Scenarios</div>
+      <button class="add-sc-btn" onclick="openModal()">+ New scenario</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+      <span style="font-size:12px;font-weight:600;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;margin-right:4px;">Horizon</span>
+      <button class="horizon-btn active" id="hz-18" onclick="setHorizon(18)">18 mo</button>
+      <button class="horizon-btn" id="hz-24" onclick="setHorizon(24)">24 mo</button>
+      <button class="horizon-btn" id="hz-36" onclick="setHorizon(36)">3 yr</button>
+    </div>
   </div>
 
   <!-- KPI STRIP -->
   <div class="kpi-strip">
     <div class="kpi" id="kpi-runway"><div class="kpi-label">Runway</div><div class="kpi-value" id="kpi-runway-val">—</div><div class="kpi-sub">months of cash</div><div class="kpi-badge" id="kpi-runway-badge"></div></div>
-    <div class="kpi" id="kpi-arr"><div class="kpi-label">Month 18 ARR</div><div class="kpi-value" id="kpi-arr-val">—</div><div class="kpi-sub">annualized run rate</div><div class="kpi-badge" style="background:var(--ice);color:var(--cobalt);">Projected</div></div>
+    <div class="kpi" id="kpi-arr"><div class="kpi-label" id="kpi-arr-label">Month 18 ARR</div><div class="kpi-value" id="kpi-arr-val">—</div><div class="kpi-sub">annualized run rate</div><div class="kpi-badge" style="background:var(--ice);color:var(--cobalt);">Projected</div></div>
     <div class="kpi" id="kpi-breakeven"><div class="kpi-label">Break-Even</div><div class="kpi-value" id="kpi-be-val">—</div><div class="kpi-sub">month of profitability</div><div class="kpi-badge" id="kpi-be-badge"></div></div>
     <div class="kpi" id="kpi-cash-end"><div class="kpi-label">Ending Cash</div><div class="kpi-value" id="kpi-cash-val">—</div><div class="kpi-sub">cash balance at month 18</div><div class="kpi-badge" id="kpi-cash-badge"></div></div>
   </div>
@@ -310,7 +321,7 @@
       <div class="panel-head">Revenue Pipeline <span><div class="sect-tag-green">WINS</div></span></div>
       <div style="padding:12px 20px 0;">
         <div class="row-header row-header-wins">
-          <span>Deal name</span><span style="text-align:right;">ARR ($K)</span><span style="text-align:center;">Closes</span><span></span>
+          <span>Deal name</span><span style="text-align:right;">ARR ($K)</span><span style="text-align:center;">Month</span><span></span>
         </div>
       </div>
       <div id="wins-body" style="padding:0 20px;"></div>
@@ -322,7 +333,7 @@
       <div class="panel-head">Cost Actions <span><div class="sect-tag">LEVERS</div></span></div>
       <div style="padding:12px 20px 0;">
         <div class="row-header row-header-costs">
-          <span>Description</span><span style="text-align:right;">$/Mo ($K)</span><span style="text-align:center;">Type</span><span style="text-align:center;">Starts</span><span></span>
+          <span>Description</span><span style="text-align:right;">$/Mo ($K)</span><span style="text-align:center;">Type</span><span style="text-align:center;">Month</span><span></span>
         </div>
       </div>
       <div id="costs-body" style="padding:0 20px;"></div>
@@ -511,7 +522,7 @@ function onSlider(key) {
 function fmt(n){ if(Math.abs(n)>=1000)return'$'+(n/1000).toFixed(1)+'M'; return'$'+n.toFixed(n%1===0?0:1)+'K'; }
 
 function monthOptions(selected) {
-  return Array.from({length:18},(_,m)=>`<option value="${m+1}" ${selected===m+1?'selected':''}>Mo. ${m+1}</option>`).join('');
+  return Array.from({length:window._horizon||18},(_,m)=>`<option value="${m+1}" ${selected===m+1?'selected':''}>${m+1}</option>`).join('');
 }
 
 function dollarInput(val, onchange) {
@@ -522,7 +533,7 @@ function dollarInput(val, onchange) {
 function project() {
   const sc=activeScenario(); const v=sc.sliders;
   const wins=window._wins||[]; const costs=window._costs||[]; const capital=window._capital||[];
-  const MONTHS=18;
+  const MONTHS=window._horizon||18;
   const labels=[],cashArr=[],mrrArr=[],revenueArr=[],opexArr=[],flowArr=[],capArr=[];
 
   let cash=v.cash, mrr=v.mrr;
@@ -560,11 +571,13 @@ function renderKPIs(d){
   const{cashArr,mrrArr,flowArr}=d;
   let runway=cashArr.length-1;
   for(let i=1;i<cashArr.length;i++)if(cashArr[i]<=0){runway=i-1;break;}
-  let be='>18';
+  const horizonLabel = window._horizon||18;
+  let be=`>${horizonLabel}`;
   for(let i=1;i<flowArr.length;i++)if(flowArr[i]>=0){be=`Mo. ${i}`;break;}
   const endCash=cashArr[cashArr.length-1], endARR=mrrArr[mrrArr.length-1]*12;
 
-  document.getElementById('kpi-runway-val').textContent=runway>=18?'18+':runway;
+  document.getElementById('kpi-runway-val').textContent=runway>=horizonLabel?horizonLabel+'+':runway;
+  document.getElementById('kpi-arr-label').textContent=`Month ${horizonLabel} ARR`;
   const rb=document.getElementById('kpi-runway-badge');
   if(runway>=12){rb.className='kpi-badge badge-green';rb.textContent='✓ Healthy';}
   else if(runway>=6){rb.className='kpi-badge badge-amber';rb.textContent='⚠ Watch';}
@@ -575,8 +588,10 @@ function renderKPIs(d){
   document.getElementById('kpi-be-val').textContent=be;
   const bb=document.getElementById('kpi-be-badge');
   const beN=typeof be==='string'&&be.startsWith('Mo.')?+be.split(' ')[1]:99;
-  if(beN<=9){bb.className='kpi-badge badge-green';bb.textContent='On track';}
-  else if(beN<=15){bb.className='kpi-badge badge-amber';bb.textContent='Stretch';}
+  const beThresh1 = Math.round(horizonLabel*0.5);
+  const beThresh2 = Math.round(horizonLabel*0.83);
+  if(beN<=beThresh1){bb.className='kpi-badge badge-green';bb.textContent='On track';}
+  else if(beN<=beThresh2){bb.className='kpi-badge badge-amber';bb.textContent='Stretch';}
   else{bb.className='kpi-badge badge-red';bb.textContent='Needs work';}
 
   document.getElementById('kpi-cash-val').textContent=fmt(endCash);
@@ -680,6 +695,17 @@ function exportCSV(){
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
   a.download=`strata-cashflow-${sc.name.toLowerCase().replace(/\s+/g,'-')}.csv`; a.click();
+}
+
+// ── HORIZON ──
+window._horizon = 18;
+function setHorizon(n) {
+  window._horizon = n;
+  [18,24,36].forEach(h => document.getElementById('hz-'+h).classList.toggle('active', h===n));
+  // Re-render month dropdowns since options change
+  renderWins(); renderCosts(); renderCapital();
+  updateAll();
+  if(window.fbPush)window.fbPush();
 }
 
 // ── INIT ──
