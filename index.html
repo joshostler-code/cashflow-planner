@@ -291,9 +291,9 @@
     <div style="display:flex;flex-direction:column;gap:1rem;">
       <div class="chart-panel">
         <div class="chart-head">
-          <h2>Cash Balance &amp; MRR Trajectory</h2>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="chart-legend">
+          <h2 id="chart-title">Cash Balance &amp; MRR Trajectory</h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div class="chart-legend" id="chart-legend">
               <div class="leg"><div class="leg-dot" style="background:#1560BD;"></div>Cash ($K)</div>
               <div class="leg"><div class="leg-dot" style="background:#1A7A44;"></div>MRR ($K)</div>
             </div>
@@ -301,6 +301,7 @@
               <button class="chart-tab active" id="tab-combo" onclick="switchTab('combo')">Combined</button>
               <button class="chart-tab" id="tab-cash" onclick="switchTab('cash')">Cash</button>
               <button class="chart-tab" id="tab-mrr" onclick="switchTab('mrr')">MRR</button>
+              <button class="chart-tab" id="tab-breakeven" onclick="switchTab('breakeven')">Breakeven</button>
             </div>
           </div>
         </div>
@@ -611,16 +612,62 @@ function initCharts(){
 
 function renderCharts(d){
   const{labels,cashArr,mrrArr,revenueArr,opexArr}=d;
-  if(chartMode==='combo'){mainChart.data.labels=labels;mainChart.data.datasets=[{label:'Cash Balance',data:cashArr,yAxisID:'y',borderColor:'#1560BD',backgroundColor:'rgba(21,96,189,.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1560BD'},{label:'MRR',data:mrrArr,yAxisID:'y2',borderColor:'#1A7A44',backgroundColor:'transparent',fill:false,tension:.35,pointRadius:3,pointBackgroundColor:'#1A7A44',borderDash:[4,3]}];mainChart.options.scales.y2.display=true;}
-  else if(chartMode==='cash'){mainChart.data.labels=labels;mainChart.data.datasets=[{label:'Cash Balance',data:cashArr,yAxisID:'y',borderColor:'#1560BD',backgroundColor:'rgba(21,96,189,.1)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1560BD'}];mainChart.options.scales.y2.display=false;}
-  else{mainChart.data.labels=labels;mainChart.data.datasets=[{label:'MRR',data:mrrArr,yAxisID:'y',borderColor:'#1A7A44',backgroundColor:'rgba(26,122,68,.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1A7A44'}];mainChart.options.scales.y2.display=false;}
+
+  // Update title and legend based on mode
+  const titleEl = document.getElementById('chart-title');
+  const legendEl = document.getElementById('chart-legend');
+
+  if(chartMode==='combo'){
+    titleEl.textContent='Cash Balance & MRR Trajectory';
+    legendEl.innerHTML=`
+      <div class="leg"><div class="leg-dot" style="background:#1560BD;"></div>Cash ($K)</div>
+      <div class="leg"><div class="leg-dot" style="background:#1A7A44;border-style:dashed;"></div>MRR ($K)</div>`;
+    mainChart.data.labels=labels;
+    mainChart.data.datasets=[
+      {label:'Cash Balance',data:cashArr,yAxisID:'y',borderColor:'#1560BD',backgroundColor:'rgba(21,96,189,.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1560BD'},
+      {label:'MRR',data:mrrArr,yAxisID:'y2',borderColor:'#1A7A44',backgroundColor:'transparent',fill:false,tension:.35,pointRadius:3,pointBackgroundColor:'#1A7A44',borderDash:[4,3]}
+    ];
+    mainChart.options.scales.y2.display=true;
+    mainChart.options.scales.y2.ticks.color='#1A7A44';
+  } else if(chartMode==='cash'){
+    titleEl.textContent='Cash Balance Over Time';
+    legendEl.innerHTML=`<div class="leg"><div class="leg-dot" style="background:#1560BD;"></div>Cash Balance ($K)</div>`;
+    mainChart.data.labels=labels;
+    mainChart.data.datasets=[{label:'Cash Balance',data:cashArr,yAxisID:'y',borderColor:'#1560BD',backgroundColor:'rgba(21,96,189,.1)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1560BD'}];
+    mainChart.options.scales.y2.display=false;
+  } else if(chartMode==='mrr'){
+    titleEl.textContent='MRR Growth Trajectory';
+    legendEl.innerHTML=`<div class="leg"><div class="leg-dot" style="background:#1A7A44;"></div>MRR ($K)</div>`;
+    mainChart.data.labels=labels;
+    mainChart.data.datasets=[{label:'MRR',data:mrrArr,yAxisID:'y',borderColor:'#1A7A44',backgroundColor:'rgba(26,122,68,.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1A7A44'}];
+    mainChart.options.scales.y2.display=false;
+  } else if(chartMode==='breakeven'){
+    titleEl.textContent='Revenue vs. Monthly Expenses — Breakeven View';
+    legendEl.innerHTML=`
+      <div class="leg"><div class="leg-dot" style="background:#1A7A44;"></div>Revenue ($K)</div>
+      <div class="leg"><div class="leg-dot" style="background:#B52020;"></div>Expenses ($K)</div>`;
+    mainChart.data.labels=labels;
+    mainChart.data.datasets=[
+      {label:'Revenue',data:revenueArr,yAxisID:'y',borderColor:'#1A7A44',backgroundColor:'rgba(26,122,68,.08)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1A7A44'},
+      {label:'Expenses',data:opexArr,yAxisID:'y',borderColor:'#B52020',backgroundColor:'rgba(181,32,32,.06)',fill:true,tension:.1,pointRadius:3,pointBackgroundColor:'#B52020',borderDash:[5,3]}
+    ];
+    mainChart.options.scales.y2.display=false;
+  }
+
   mainChart.update('none');
   flowChart.data.labels=labels.slice(1);
-  flowChart.data.datasets=[{label:'Revenue',data:revenueArr.slice(1),backgroundColor:'rgba(26,122,68,.7)',borderRadius:3},{label:'Burn',data:opexArr.slice(1).map(v=>-v),backgroundColor:'rgba(181,32,32,.5)',borderRadius:3}];
+  flowChart.data.datasets=[
+    {label:'Revenue',data:revenueArr.slice(1),backgroundColor:'rgba(26,122,68,.7)',borderRadius:3},
+    {label:'Burn',data:opexArr.slice(1).map(v=>-v),backgroundColor:'rgba(181,32,32,.5)',borderRadius:3}
+  ];
   flowChart.update('none');
 }
 
-function switchTab(mode){chartMode=mode;['combo','cash','mrr'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===mode));updateAll();}
+function switchTab(mode){
+  chartMode=mode;
+  ['combo','cash','mrr','breakeven'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===mode));
+  updateAll();
+}
 
 // ── TABLE ──
 function renderTable(d){
