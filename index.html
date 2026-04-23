@@ -531,6 +531,18 @@ function dollarInput(val, onchange) {
   return `<div class="dollar-wrap"><span class="dollar-sign">$</span><input class="edit-val-d" type="number" min="0" value="${val}" onchange="${onchange}" /></div>`;
 }
 
+// Generate calendar month labels starting from current month
+function buildCalendarLabels(count) {
+  const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const labels = ['Now'];
+  for(let i=1; i<=count; i++){
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    labels.push(MONTH_ABBR[d.getMonth()] + " '" + String(d.getFullYear()).slice(2));
+  }
+  return labels;
+}
+
 // ── PROJECTION ENGINE ──
 function project() {
   const sc=activeScenario(); const v=sc.sliders;
@@ -606,13 +618,88 @@ function renderKPIs(d){
 
 // ── CHARTS ──
 let chartMode='combo', mainChart, flowChart;
+
+const xAxisBase = {
+  grid:{color:'rgba(0,0,0,.04)'},
+  ticks:{color:'#7E93AF',font:{size:11}}
+};
+const xAxisCalendar = {
+  grid:{display:false},
+  ticks:{color:'#B0BFCF',font:{size:10},maxRotation:0},
+  position:'bottom'
+};
+
 function initCharts(){
-  mainChart=new Chart(document.getElementById('mainChart').getContext('2d'),{type:'line',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:10,cornerRadius:8,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)}},y2:{position:'right',display:true,grid:{drawOnChartArea:false},ticks:{color:'#1A7A44',font:{size:11},callback:v=>fmt(v)}}}}});
-  flowChart=new Chart(document.getElementById('flowChart').getContext('2d'),{type:'bar',data:{labels:[],datasets:[]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:10,cornerRadius:8,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11}}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)}}}}});
+  mainChart=new Chart(document.getElementById('mainChart').getContext('2d'),{
+    type:'line', data:{labels:[],datasets:[]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',
+          padding:10,cornerRadius:8,
+          callbacks:{
+            title: ctx => {
+              const idx = ctx[0].dataIndex;
+              const cal = mainChart._calLabels || [];
+              const ml = ctx[0].label;
+              return cal[idx] ? `${ml}  ·  ${cal[idx]}` : ml;
+            },
+            label: ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)
+          }
+        }
+      },
+      scales:{
+        x:  { ...xAxisBase },
+        x2: { ...xAxisCalendar, display:true },
+        y:  { grid:{color:'rgba(0,0,0,.04)'}, ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)} },
+        y2: { position:'right', display:true, grid:{drawOnChartArea:false}, ticks:{color:'#1A7A44',font:{size:11},callback:v=>fmt(v)} }
+      }
+    }
+  });
+
+  flowChart=new Chart(document.getElementById('flowChart').getContext('2d'),{
+    type:'bar', data:{labels:[],datasets:[]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0B1D35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',
+          padding:10,cornerRadius:8,
+          callbacks:{
+            title: ctx => {
+              const idx = ctx[0].dataIndex;
+              const cal = flowChart._calLabels || [];
+              const ml = ctx[0].label;
+              return cal[idx] ? `${ml}  ·  ${cal[idx]}` : ml;
+            },
+            label: ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)
+          }
+        }
+      },
+      scales:{
+        x:  { ...xAxisBase },
+        x2: { ...xAxisCalendar, display:true },
+        y:  { grid:{color:'rgba(0,0,0,.04)'}, ticks:{color:'#7E93AF',font:{size:11},callback:v=>fmt(v)} }
+      }
+    }
+  });
 }
 
 function renderCharts(d){
   const{labels,cashArr,mrrArr,revenueArr,opexArr}=d;
+  const calLabels = buildCalendarLabels(window._horizon||18);
+
+  // Store for tooltip access
+  mainChart._calLabels = calLabels;
+  flowChart._calLabels = calLabels.slice(1);
+
+  // Wire calendar labels to x2 axis
+  mainChart.options.scales.x2.labels = calLabels;
+  flowChart.options.scales.x2.labels = calLabels.slice(1);
 
   // Update title and legend based on mode
   const titleEl = document.getElementById('chart-title');
@@ -673,11 +760,13 @@ function switchTab(mode){
 // ── TABLE ──
 function renderTable(d){
   const{labels,cashArr,mrrArr,revenueArr,opexArr,flowArr,capArr}=d;
+  const calLabels = buildCalendarLabels(window._horizon||18);
   document.getElementById('proj-table').innerHTML=labels.slice(1).map((l,i)=>{
     const idx=i+1,flow=flowArr[idx],cash=cashArr[idx],cap=capArr[idx];
     const fc=flow>=0?'cell-pos':'cell-neg',cc=cash>500?'cell-pos':cash>0?'cell-warn':'cell-neg';
     const st=cash<=0?'<span class="kpi-badge badge-red">Insolvent</span>':flow>=0?'<span class="kpi-badge badge-green">Profitable</span>':'<span class="kpi-badge badge-amber">Burning</span>';
-    return`<tr><td>${l}</td><td>${fmt(mrrArr[idx])}</td><td>${fmt(revenueArr[idx])}</td><td class="cell-neg">${fmt(opexArr[idx])}</td><td style="color:${cap>0?'var(--purple)':'var(--text-3)'}">${cap>0?'+'+fmt(cap):'—'}</td><td class="${fc}">${flow>=0?'+':''}${fmt(flow)}</td><td class="${cc}">${fmt(cash)}</td><td>${st}</td></tr>`;
+    const calLbl = calLabels[idx] || '';
+    return`<tr><td><span style="font-weight:600">${l}</span> <span style="color:var(--text-3);font-size:11px;font-family:'DM Sans',sans-serif;">${calLbl}</span></td><td>${fmt(mrrArr[idx])}</td><td>${fmt(revenueArr[idx])}</td><td class="cell-neg">${fmt(opexArr[idx])}</td><td style="color:${cap>0?'var(--purple)':'var(--text-3)'}">${cap>0?'+'+fmt(cap):'—'}</td><td class="${fc}">${flow>=0?'+':''}${fmt(flow)}</td><td class="${cc}">${fmt(cash)}</td><td>${st}</td></tr>`;
   }).join('');
 }
 
