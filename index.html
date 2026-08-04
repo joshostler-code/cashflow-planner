@@ -7,7 +7,9 @@
  <link rel="icon" type="image/png" href="data:image/png;base64,...
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -241,12 +243,59 @@
 
     footer { text-align:center; padding:2rem; font-size:12px; color:var(--text-3); border-top:1px solid var(--border); margin-top:3rem; }
 
-    @media (max-width:1200px) { .saved-sidebar { display:none; } }
+   @media (max-width:1200px) { .saved-sidebar { display:none; } }
     @media (max-width:960px) { .main-grid { grid-template-columns:1fr; } .kpi-strip { grid-template-columns:repeat(2,1fr); } .three-col { grid-template-columns:1fr; } }
     @media (max-width:480px) { .kpi-strip { grid-template-columns:1fr; } header { padding:0 1rem; } .page { padding:1rem 1rem 3rem; } }
+
+    /* ── PDF EXPORT TEMPLATE (offscreen, scoped with pdfx- prefix to avoid collisions) ── */
+    #pdf-export-root { position:fixed; left:-9999px; top:0; width:816px; }
+    .pdfx-page { width:816px; background:#FFFFFF; padding:36px 42px 30px; color:var(--text-1); font-family:'DM Sans',sans-serif; }
+    .pdfx-header { display:flex; align-items:flex-start; justify-content:space-between; border-bottom:2px solid var(--navy); padding-bottom:12px; margin-bottom:16px; }
+    .pdfx-header-left { display:flex; align-items:center; gap:10px; }
+    .pdfx-logo-mark { width:26px; height:26px; background:var(--cobalt); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; }
+    .pdfx-title { font-size:19px; font-weight:700; color:var(--navy); letter-spacing:-.01em; }
+    .pdfx-subtitle { font-size:12px; color:var(--text-2); margin-top:1px; }
+    .pdfx-header-right { text-align:right; }
+    .pdfx-scenario-name { font-size:14px; font-weight:600; color:var(--cobalt); }
+    .pdfx-date { font-size:11px; color:var(--text-3); margin-top:2px; }
+    .pdfx-kpi-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:18px; }
+    .pdfx-kpi { background:var(--surface-2); border-radius:8px; padding:10px 12px; border:1px solid var(--border); }
+    .pdfx-kpi-label { font-size:9px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-3); margin-bottom:4px; }
+    .pdfx-kpi-value { font-size:17px; font-weight:700; letter-spacing:-.02em; color:var(--text-1); line-height:1.1; }
+    .pdfx-kpi-badge { display:inline-block; margin-top:5px; padding:1px 6px; border-radius:99px; font-size:9px; font-weight:600; }
+    .pdfx-badge-green { background:var(--green-bg); color:var(--green); }
+    .pdfx-badge-amber { background:var(--amber-bg); color:var(--amber); }
+    .pdfx-badge-red { background:var(--red-bg); color:var(--red); }
+    .pdfx-badge-purple { background:var(--purple-bg); color:var(--purple); }
+    .pdfx-section-label { font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--navy); margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+    .pdfx-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .pdfx-chart-section { margin-bottom:18px; }
+    .pdfx-chart-box { border:1px solid var(--border); border-radius:8px; padding:8px; height:220px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .pdfx-chart-box img { max-width:100%; max-height:100%; }
+    .pdfx-three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:18px; }
+    .pdfx-col-panel { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .pdfx-col-head { background:var(--surface-2); padding:6px 10px; font-size:10.5px; font-weight:700; color:var(--text-1); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .pdfx-col-tag { font-size:8px; font-weight:700; letter-spacing:.04em; padding:1px 5px; border-radius:99px; }
+    .pdfx-tag-green { background:var(--green-bg); color:var(--green); }
+    .pdfx-tag-cobalt { background:var(--ice); color:var(--cobalt); }
+    .pdfx-tag-purple { background:var(--purple-bg); color:var(--purple); }
+    .pdfx-col-rows { padding:6px 10px; }
+    .pdfx-col-row { display:flex; justify-content:space-between; gap:8px; font-size:10.5px; padding:4px 0; border-bottom:1px solid var(--border); }
+    .pdfx-col-row:last-child { border-bottom:none; }
+    .pdfx-row-name { color:var(--text-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .pdfx-row-val { font-family:'DM Mono',monospace; font-weight:500; color:var(--navy); white-space:nowrap; flex-shrink:0; }
+    .pdfx-row-val.pdfx-purple { color:var(--purple); }
+    .pdfx-col-empty { font-size:10px; color:var(--text-3); padding:8px 0; text-align:center; }
+    .pdfx-assumptions { border-top:1px solid var(--border); padding-top:12px; }
+    .pdfx-assumptions-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 24px; }
+    .pdfx-assumption-item { font-size:10.5px; color:var(--text-2); display:flex; justify-content:space-between; padding:3px 0; }
+    .pdfx-assumption-item b { color:var(--text-1); font-family:'DM Mono',monospace; font-weight:500; }
+    .pdfx-footer { margin-top:20px; padding-top:10px; border-top:1px solid var(--border); font-size:9px; color:var(--text-3); text-align:center; }
   </style>
 </head>
 <body>
+
+<div id="pdf-export-root"></div>
 
 <!-- MODAL -->
 <div class="modal-overlay hidden" id="modal-overlay">
@@ -270,8 +319,9 @@
     <div class="tag-live">LIVE</div>
   </div>
   <div class="header-right">
-    <div class="sync-indicator" id="sync-ind"><div class="sync-dot"></div><span>Live sync</span></div>
+  <div class="sync-indicator" id="sync-ind"><div class="sync-dot"></div><span>Live sync</span></div>
     <button class="btn-sm btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn-sm btn-ghost" id="pdf-export-btn" onclick="exportPDF()">⬇ Export PDF</button>
     <button class="btn-sm btn-primary" onclick="window.print()">Print</button>
   </div>
 </header>
@@ -1094,6 +1144,148 @@ function exportCSV(){
   a.download=`strata-cashflow-${sc.name.toLowerCase().replace(/\s+/g,'-')}.csv`; a.click();
 }
 
+// ── PDF EXPORT ──
+function buildPDFHTML(chartImgDataUrl) {
+  const sc = activeScenario();
+  const v = sc.sliders;
+  const horizonLabel = window._horizon || 18;
+  const dateStr = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  const get = id => { const el=document.getElementById(id); return el ? el.textContent : ''; };
+  const runwayVal = get('kpi-runway-val');
+  const runwayBadgeEl = document.getElementById('kpi-runway-badge');
+  const arrVal = get('kpi-arr-val');
+  const arrLabel = get('kpi-arr-label');
+  const beVal = get('kpi-be-val');
+  const beBadgeEl = document.getElementById('kpi-be-badge');
+  const cashVal = get('kpi-cash-val');
+  const cashBadgeEl = document.getElementById('kpi-cash-badge');
+  const bridgeVisible = !document.getElementById('kpi-bridge').classList.contains('hidden-kpi');
+  const bridgeVal = get('kpi-bridge-val');
+  const bridgeBadgeEl = document.getElementById('kpi-bridge-badge');
+
+  const badgeClass = el => el ? el.className.replace('kpi-badge','pdfx-kpi-badge').split(' ').map(c=>c.startsWith('badge-')?'pdfx-'+c:c).join(' ') : '';
+
+  const kpiCards = [
+    `<div class="pdfx-kpi"><div class="pdfx-kpi-label">Runway</div><div class="pdfx-kpi-value">${runwayVal}</div><div class="${badgeClass(runwayBadgeEl)}">${runwayBadgeEl?runwayBadgeEl.textContent:''}</div></div>`,
+    `<div class="pdfx-kpi"><div class="pdfx-kpi-label">${arrLabel}</div><div class="pdfx-kpi-value">${arrVal}</div></div>`,
+    `<div class="pdfx-kpi"><div class="pdfx-kpi-label">Break-Even</div><div class="pdfx-kpi-value">${beVal}</div><div class="${badgeClass(beBadgeEl)}">${beBadgeEl?beBadgeEl.textContent:''}</div></div>`,
+  ];
+  if (bridgeVisible) {
+    kpiCards.push(`<div class="pdfx-kpi"><div class="pdfx-kpi-label">Bridge Capital</div><div class="pdfx-kpi-value">${bridgeVal}</div><div class="${badgeClass(bridgeBadgeEl)}">${bridgeBadgeEl?bridgeBadgeEl.textContent:''}</div></div>`);
+  }
+  kpiCards.push(`<div class="pdfx-kpi"><div class="pdfx-kpi-label">Ending Cash</div><div class="pdfx-kpi-value">${cashVal}</div><div class="${badgeClass(cashBadgeEl)}">${cashBadgeEl?cashBadgeEl.textContent:''}</div></div>`);
+
+  const winsRows = (window._wins||[]).length
+    ? window._wins.map(w=>`<div class="pdfx-col-row"><span class="pdfx-row-name">${w.name}</span><span class="pdfx-row-val">${fmt(w.arr)} · Mo ${w.month}</span></div>`).join('')
+    : '<div class="pdfx-col-empty">No deals in pipeline</div>';
+  const costsRows = (window._costs||[]).length
+    ? window._costs.map(c=>`<div class="pdfx-col-row"><span class="pdfx-row-name">${c.name}</span><span class="pdfx-row-val">${c.type==='Increase'?'+':'-'}${fmt(c.delta)} · Mo ${c.startMonth||1}</span></div>`).join('')
+    : '<div class="pdfx-col-empty">No cost actions</div>';
+  const capitalRows = (window._capital||[]).length
+    ? window._capital.map(c=>`<div class="pdfx-col-row"><span class="pdfx-row-name">${c.name}</span><span class="pdfx-row-val pdfx-purple">+${fmt(c.amount)} · Mo ${c.month}</span></div>`).join('')
+    : '<div class="pdfx-col-empty">No capital inflows</div>';
+
+  const assumptions = [
+    ['Cash on hand', fmt(v.cash)],
+    ['Starting MRR', fmt(v.mrr)],
+    ['Monthly burn (OPEX)', fmt(v.opex)],
+    ['New MRR / month', fmt(v.newmrr)],
+    ['Monthly churn rate', v.churn.toFixed(1)+'%'],
+    ['Avg contract size (ARR)', fmt(v.contract)],
+    ['Expansion revenue / month', fmt(v.expansion)],
+    ['Projection horizon', horizonLabel+' months'],
+  ];
+  const assumptionsHTML = assumptions.map(([label,val])=>`<div class="pdfx-assumption-item"><span>${label}</span><b>${val}</b></div>`).join('');
+
+  return `
+    <div class="pdfx-page">
+      <div class="pdfx-header">
+        <div class="pdfx-header-left">
+          <div class="pdfx-logo-mark">SI</div>
+          <div>
+            <div class="pdfx-title">Cash Flow Planner — Summary</div>
+            <div class="pdfx-subtitle">Strata Intel · ${horizonLabel}-month runway and revenue projection</div>
+          </div>
+        </div>
+        <div class="pdfx-header-right">
+          <div class="pdfx-scenario-name">Scenario: ${sc.name}</div>
+          <div class="pdfx-date">Generated ${dateStr}</div>
+        </div>
+      </div>
+
+      <div class="pdfx-kpi-strip" style="grid-template-columns:repeat(${kpiCards.length},1fr);">${kpiCards.join('')}</div>
+
+      <div class="pdfx-chart-section">
+        <div class="pdfx-section-label">Cash balance &amp; MRR trajectory</div>
+        <div class="pdfx-chart-box">${chartImgDataUrl ? `<img src="${chartImgDataUrl}" />` : ''}</div>
+      </div>
+
+      <div class="pdfx-three-col">
+        <div class="pdfx-col-panel">
+          <div class="pdfx-col-head">Revenue Pipeline <span class="pdfx-col-tag pdfx-tag-green">WINS</span></div>
+          <div class="pdfx-col-rows">${winsRows}</div>
+        </div>
+        <div class="pdfx-col-panel">
+          <div class="pdfx-col-head">Cost Actions <span class="pdfx-col-tag pdfx-tag-cobalt">LEVERS</span></div>
+          <div class="pdfx-col-rows">${costsRows}</div>
+        </div>
+        <div class="pdfx-col-panel">
+          <div class="pdfx-col-head">Investor Capital <span class="pdfx-col-tag pdfx-tag-purple">INFLOWS</span></div>
+          <div class="pdfx-col-rows">${capitalRows}</div>
+        </div>
+      </div>
+
+      <div class="pdfx-assumptions">
+        <div class="pdfx-section-label">Model assumptions</div>
+        <div class="pdfx-assumptions-grid">${assumptionsHTML}</div>
+      </div>
+
+      <div class="pdfx-footer">Strata Intel · Cash Flow Planner · Projections are estimates only and do not constitute financial advice.</div>
+    </div>
+  `;
+}
+
+async function exportPDF() {
+  const btn = document.getElementById('pdf-export-btn');
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Generating…';
+  btn.disabled = true;
+
+  try {
+    saveCurrentToActive();
+
+    const originalMode = chartMode;
+    if (chartMode !== 'combo') { chartMode = 'combo'; updateAll(); await new Promise(r=>setTimeout(r,50)); }
+    const chartImgDataUrl = mainChart.toBase64Image('image/png', 1.0);
+    if (originalMode !== 'combo') { chartMode = originalMode; updateAll(); }
+
+    const root = document.getElementById('pdf-export-root');
+    root.innerHTML = buildPDFHTML(chartImgDataUrl);
+    await new Promise(r=>setTimeout(r,50));
+
+    const pageEl = root.querySelector('.pdfx-page');
+    const canvas = await html2canvas(pageEl, { scale:2, backgroundColor:'#FFFFFF', useCORS:true });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'in', format:'letter' });
+    const pageWidthIn = 8.5, pageHeightIn = 11;
+    const imgWidthIn = pageWidthIn;
+    const imgHeightIn = (canvas.height * imgWidthIn) / canvas.width;
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgWidthIn, imgHeightIn > pageHeightIn ? pageHeightIn : imgHeightIn);
+
+    const sc = activeScenario();
+    pdf.save(`strata-cashflow-summary-${sc.name.toLowerCase().replace(/\s+/g,'-')}.pdf`);
+
+    root.innerHTML = '';
+  } catch (err) {
+    console.error('PDF export failed:', err);
+    alert('PDF export failed. Please try again.');
+  } finally {
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+  }
+}
 // ── HORIZON ──
 window._horizon = 18;
 function setHorizon(n) {
